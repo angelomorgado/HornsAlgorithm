@@ -1,0 +1,4 @@
+1º-> dentro da pasta HornsAlgorithm
+2º-> git add .
+3º-> git commit -m "message"
+4º-> git push
