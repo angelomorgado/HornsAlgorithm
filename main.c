@@ -11,6 +11,10 @@ typedef struct Expressao{
     int tamNegativos;
 }Expressao;
 
+
+
+//=============================================== FUNÇÕES AUXILIARES =================================================================
+
 //Verifica se um char c existe num qualquer array de chars lista
 int existeNaLista(char *lista, char c, int tam)
 {
@@ -22,6 +26,70 @@ int existeNaLista(char *lista, char c, int tam)
     return 0;
 }
 
+
+//Verifica se um determinado Array de chars está contido noutro, return 1 se está senão return 0
+int estaContido(char *big, int tamBig, char *small, int tamSmall)
+{
+    int count=0;
+    //percorrer small e verificar se cada caracter dele existe no big
+    for(int i=0; i<tamSmall; i++)
+    {
+        if(existeNaLista(big, small[i], tamBig) == 1)
+            count++;
+    }
+
+    if(count == tamSmall)
+        return 1;
+    else
+        return 0;
+}
+
+//Dá reset á lista de expressões para que possa ser utilizada novamente devolve o valor do tamanho da lista como 0
+int reset(Expressao **lista)
+{
+    //Liberta a memória em heap da lista
+    free(*lista);
+    //Volta a inicializar a lista
+    *lista = malloc(1);
+
+    return 0;
+}
+
+void debugLinha(Expressao *lista, int tamLista)
+{
+    for(int i=0; i< tamLista; i++)
+    {
+        printf("\n============================ EXPRESSAO %d =========================\n\n", i+1);
+        printf("Elementos positivos:\n");
+        for(int f = 0; f< lista[i].tamPositivos; f++)
+        {
+            printf("%c ", lista[i].Positivos[f]);
+        }
+        printf("\n\n");
+        printf("Elementos negativos:\n");
+        for(int f = 0; f< lista[i].tamNegativos; f++)
+        {
+            printf("%c ", lista[i].Negativos[f]);
+        }
+        printf("\n");
+    }
+}
+
+//Verifica se existe mais do que um positivo numa expressa, se sim retornar 1 senão retornar 0
+int verificarPositivos(Expressao *lista, int tamLista)
+{
+    for(int i = 0; i<tamLista; i++)
+    {
+        if(lista[i].tamPositivos > 1)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+//================================================================================================================================================
+//============================================================== FUNÇOES PRINCIPAIS ==============================================================
 
 //Divide a linha em expressoes e separa os valores negativos e positivos na estrutura Expressao
 int DesfragmentarLinha(char *linha, Expressao **lista)
@@ -78,48 +146,72 @@ int DesfragmentarLinha(char *linha, Expressao **lista)
     return tamLista;
 }
 
-//Dá reset á lista de expressões para que possa ser utilizada novamente devolve o valor do tamanho da lista como 0
-int reset(Expressao **lista)
-{
-    //Liberta a memória em heap da lista
-    free(*lista);
-    //Volta a inicializar a lista
-    *lista = malloc(1);
 
-    return 0;
-}
-
-void debugLinha(Expressao *lista, int tamLista)
+void AlgoritmoHorn(Expressao *lista, int tamLista)
 {
-    for(int i=0; i< tamLista; i++)
+    //Inicialização da lista utilizada para fazer o algoritmo de Horn, o TOP em código pode ser omitido
+    //Desta forma ele já está imbutido na lista mesmo que esta esteja vazia
+    char *listaHorn = malloc(1);
+    int tamHorn = 0;
+
+    //1º passo -> Colocar todos os que Top implica dentro da lista
+    for(int i=0; i<tamLista; i++)
     {
-        printf("\n============================ EXPRESSAO %d =========================\n\n", i+1);
-        printf("Elementos positivos:\n");
-        for(int f = 0; f< lista[i].tamPositivos; f++)
+        if(lista[i].tamNegativos == 0)
         {
-            printf("%c ", lista[i].Positivos[f]);
-        }
-        printf("\n\n");
-        printf("Elementos negativos:\n");
-        for(int f = 0; f< lista[i].tamNegativos; f++)
-        {
-            printf("%c ", lista[i].Negativos[f]);
-        }
-        printf("\n");
-    }
-}
-
-//Verifica se existe mais do que um positivo numa expressa, se sim retornar 1 senão retornar 0
-int verificarPositivos(Expressao *lista, int tamLista)
-{
-    for(int i = 0; i<tamLista; i++)
-    {
-        if(lista[i].tamPositivos > 1)
-        {
-            return 1;
+            //CASO NAO EXISTAM NEGATIVOS OU POSITIVOS NA EXPRESSAO SIGNIFICA QUE TOP -> BOTTOM, LOGO RETORNAR UNSAT
+            tamHorn++;
+            listaHorn = realloc(listaHorn, tamHorn * sizeof(char));
+            //Como só pode existir um positivo é seguro adicionar esse mesmo positivo
+            listaHorn[tamHorn-1] = lista[i].Positivos[0];
         }
     }
-    return 0;
+
+    //2º passo -> Colocar todos aqueles que sejam implicados pelos elementos da listaHorn
+
+    //A variável tomHornInicial vai ser comparada com o tamHorn para ver se houve alteração
+    //Se não houver quaisquer alterações no tamamnho sair do while
+    int tamHornInicial = 0;
+
+    while(tamHorn != tamHornInicial)
+    {
+        tamHornInicial = tamHorn;
+
+        //Vai percorrer a lista para verificar se é possivel adicionar á listaHorn usando a função estaContido
+        for(int i=0;i<tamLista; i++)
+        {
+            //Se está contido adicionar o positivo
+            if(estaContido(listaHorn, tamHorn, lista[i].Negativos, lista[i].tamNegativos) == 1 && existeNaLista(listaHorn, lista[i].Positivos[0], tamHorn) == 0)
+            {
+                if(lista[i].tamPositivos == 1)
+                {
+                    tamHorn++;
+                    listaHorn = realloc(listaHorn, tamHorn * sizeof(char));
+                    //Como só pode existir um positivo é seguro adicionar esse mesmo positivo
+                    listaHorn[tamHorn-1] = lista[i].Positivos[0];
+                }
+                else
+                {
+                    tamHorn++;
+                    listaHorn = realloc(listaHorn, tamHorn * sizeof(char));
+                    //Como só pode existir um positivo é seguro adicionar esse mesmo positivo
+                    listaHorn[tamHorn-1] = '_';
+                    break;
+                }
+            }
+        }  
+
+        if(listaHorn[tamHorn-1] == '_')
+            break;
+    }
+    if(listaHorn[tamHorn-1] == '_')
+    {
+        printf("UNSAT\n");
+    }
+    else
+    {
+        printf("SAT\n");
+    }     
 }
 
 int main()
@@ -139,9 +231,10 @@ int main()
     //Este while irá ler linha a linha
     while((read = getline(&linha, &tam, f)) != -1)
     {
-        printf("\n\n====================================NOVA LINHA====================================\n%s\n", linha);
+        //Organiza a linha recebida por input numa estrutura 
         tamLista = DesfragmentarLinha(linha,&lista); 
-        debugLinha(lista, tamLista);
+        
+        //debugLinha(lista, tamLista);
 
         //Se por acaso alguma das expressoes da lista tiver mais do que um positivo deve printar NA e nem fazer mais nada
         if(verificarPositivos(lista, tamLista) == 1)
@@ -149,12 +242,14 @@ int main()
             printf("NA\n");
             continue;
         }
-
         
+        //Aplica o algoritmo de Horn
+        AlgoritmoHorn(lista, tamLista);
         
         //Dá reset na lista e no seu tamanho para ser reutilizado
         tamLista = reset(&lista);
     }
+
     free(lista);
     return 0;
 }
