@@ -1,0 +1,16 @@
+1º passo -> Ler o input linha a linha
+2º passo -> Ler a linha e dividir nos & para um array (primeiro array)
+3º passo -> Ler o array e dividir na conjunção
+4º passo -> Aplicar algoritmo
+
+Estrutura:
+
+while(read.hasNextLine())
+{
+    //Ler input
+
+    //algoritmo
+    continue;
+
+    //printf resposta
+}
