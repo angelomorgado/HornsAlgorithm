@@ -1,4 +1,3 @@
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -216,20 +215,11 @@ void AlgoritmoHorn(Expressao *lista, int tamLista)
 
 int main()
 {
-    //Abre o ficheira
-    FILE *f = fopen("teste.txt", "r");
-    if(f == NULL)
-    {
-        printf("Falha na abertura do ficheiro\n");
-        return 1;
-    }
-
-    char *linha = NULL;
-    size_t read, tam;
+    char *linha = malloc(60000); //ahah memory goes BRRRRRRRR
     Expressao *lista = malloc(1);
     int tamLista;
     //Este while irá ler linha a linha
-    while((read = getline(&linha, &tam, f)) != -1)
+    while(fgets(linha, 60000, stdin))
     {
         //Organiza a linha recebida por input numa estrutura 
         tamLista = DesfragmentarLinha(linha,&lista); 
