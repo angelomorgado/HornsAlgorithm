@@ -1,6 +1,6 @@
-binName:=HornsAlgorithm
+bin:=HornsAlgorithm
 
-$(binName):main.c
+$(bin):main.c
 	gcc -o main main.c -Wall -std=c99 -lm
 
 clean:
